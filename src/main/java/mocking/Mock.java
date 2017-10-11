@@ -8,9 +8,16 @@ import java.util.Map;
 
 public class Mock {
 
+
+    @SuppressWarnings("unchecked")
     public static <T> T mock(Class<T> clazz) {
 
-        return null;
+        Class<?>[] classes = new Class<?>[] {clazz};
+
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), classes, (proxy, method, args) -> {
+            System.out.println("In Proxy");
+            return null;
+        });
     }
 
     public static <T> T verify(T mock) {
