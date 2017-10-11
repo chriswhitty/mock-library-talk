@@ -19,6 +19,7 @@ public class Mock {
     }
 
     private static Map<Object, Call> mockInteractions = new HashMap<>();
+    private static Map<Object, Boolean> mockVerificationState = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public static <T> T mock(Class<T> clazz) {
@@ -30,13 +31,27 @@ public class Mock {
                 return System.identityHashCode(proxy);
             }
 
+            if(mockVerificationState.getOrDefault(proxy, false)) {
+                mockVerificationState.put(proxy, false);
+
+                Call actualCall = mockInteractions.get(proxy);
+                if(actualCall == null) {
+                    throw new MockVerificationException();
+                }
+
+                if(!(actualCall.method.equals(method) && Arrays.equals(actualCall.args, args))) {
+                    throw new MockVerificationException();
+                }
+                return null;
+            }
+
             mockInteractions.put(proxy, new Call(method, args));
             return null;
         });
     }
 
     public static <T> T verify(T mock) {
-        System.out.println(mockInteractions);
+        mockVerificationState.put(mock, true);
         return mock;
     }
 }
